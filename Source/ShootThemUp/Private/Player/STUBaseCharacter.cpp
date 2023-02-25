@@ -20,6 +20,8 @@ ASTUBaseCharacter::ASTUBaseCharacter(const FObjectInitializer& ObjInit)
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	CameraComponent->SetupAttachment(SpringArmComponent);
+
+	DefaultWalkSpeed = GetCharacterMovement()->GetMaxSpeed();
 }
 
 // Called when the game starts or when spawned
@@ -56,6 +58,18 @@ bool ASTUBaseCharacter::IsRunning() const
 	return WantsToRun && IsMovingForward && !GetVelocity().IsZero();
 }
 
+float ASTUBaseCharacter::GetMovementDirection() const
+{
+	if (GetVelocity().IsZero())
+		return 0.0f;
+	const auto VelocityNormal = GetVelocity().GetSafeNormal();
+	const auto AngleBetween = FMath::Acos(FVector::DotProduct(GetActorForwardVector(), VelocityNormal));
+	const auto CrossProduct = FVector::CrossProduct(GetActorForwardVector(), VelocityNormal);
+	const auto Degrees = FMath::RadiansToDegrees(AngleBetween);
+
+	return CrossProduct.IsZero() ? Degrees : Degrees * FMath::Sign(CrossProduct.Z);
+}
+
 void ASTUBaseCharacter::MoveForward(float Amount)
 {
 	IsMovingForward = Amount > 0.0f;
@@ -64,6 +78,7 @@ void ASTUBaseCharacter::MoveForward(float Amount)
 
 void ASTUBaseCharacter::MoveRight(float Amount)
 {
+	if (Amount == 0.0f) return;
 	AddMovementInput(GetActorRightVector(), Amount);
 }
 
@@ -72,7 +87,7 @@ void ASTUBaseCharacter::OnStartRunning()
 	WantsToRun = true;
 
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
-	MovementComponent->MaxWalkSpeed = RunSpeed;
+	MovementComponent->MaxWalkSpeed = MovementComponent->GetMaxSpeed();
 }
 
 void ASTUBaseCharacter::OnStopRunning()

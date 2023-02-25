@@ -38,12 +38,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsRunning() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	float GetMovementDirection() const;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = "600", ClampMax = "6000"))
 	float RunSpeed = 1000.0f;
 
 private:
 	bool WantsToRun = false;
 	bool IsMovingForward = false;
+	float DefaultWalkSpeed = 600.0f;
 
 	// Character movement
 	void MoveForward(float Amount);
